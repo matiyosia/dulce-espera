@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Heart, Hourglass, Calendar as CalendarIcon } from "lucide-react";
 
-const FECHA_INICIO = new Date(2026, 3, 13); // FUM: 13 de Abril de 2026
+const FECHA_INICIO = new Date(2026, 3, 9);
 const TOTAL_DIAS_EMBARAZO = 280;
 
 const OBTENER_TAMAÑO_BEBE = (semana) => {
