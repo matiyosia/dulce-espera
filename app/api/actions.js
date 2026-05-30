@@ -4,12 +4,20 @@ import { prisma } from "../../lib/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function guardarTurno(datos) {
-  // datos es un objeto simple { titulo, fecha, doctor, notas }
   try {
+    if (!datos.fecha) {
+      return { success: false, error: "La fecha es requerida" };
+    }
+
+    const fecha = new Date(datos.fecha);
+    if (isNaN(fecha.getTime())) {
+      return { success: false, error: "La fecha no es válida" };
+    }
+
     await prisma.turnoMedico.create({
       data: {
         titulo: datos.titulo,
-        fecha: new Date(datos.fecha),
+        fecha: fecha,
         doctor: datos.doctor || null,
         notes: datos.notas || null,
       },

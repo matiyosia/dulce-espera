@@ -50,6 +50,7 @@ export default function Home() {
 
   // Manejador del formulario adaptado para altas y modificaciones
   const handleFormulario = async (valoresFormulario) => {
+    console.log("Valores recibidos:", valoresFormulario);
     startTransition(async () => {
       let res;
       if (turnoEnEdicion) {
