@@ -4,14 +4,17 @@ import { prisma } from "../../lib/prisma";
 import { revalidatePath } from "next/cache";
 
 function parsearFecha(fechaStr) {
-  const str = String(fechaStr).trim().slice(0, 16);
-  const [datePart, timePart] = str.split("T");
-  const [year, month, day] = (datePart || "").split("-").map(Number);
-  const [hours, minutes] = (timePart || "00:00").split(":").map(Number);
+  const str = String(fechaStr).trim();
 
-  if (isNaN(year) || isNaN(month) || isNaN(day)) {
+  // Extraer los números del string y reconstruir la fecha manualmente
+  // Cubre casos como "202610-02-20T00:00" o "+202610-02-20T00:00:00.000Z"
+  const match = str.match(/(\d{4})\D*(\d{2})\D*(\d{2})\D*(\d{2})\D*(\d{2})/);
+
+  if (!match) {
     throw new Error(`Fecha inválida recibida: "${fechaStr}"`);
   }
+
+  const [, year, month, day, hours, minutes] = match.map(Number);
 
   return new Date(year, month - 1, day, hours, minutes);
 }
