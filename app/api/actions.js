@@ -62,8 +62,11 @@ export async function obtenerTurnos() {
 
     return turnos.map((turno) => ({
       ...turno,
-      fecha: turno.fecha ? turno.fecha.toISOString() : null,
-      createdAt: turno.createdAt ? turno.createdAt.toISOString() : null,
+      // Sacar la Z del final para que no se interprete como UTC
+      fecha: turno.fecha ? turno.fecha.toISOString().replace("Z", "") : null,
+      createdAt: turno.createdAt
+        ? turno.createdAt.toISOString().replace("Z", "")
+        : null,
     }));
   } catch (error) {
     console.error("❌ Error en obtenerTurnos:", error);
