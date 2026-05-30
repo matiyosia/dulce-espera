@@ -6,8 +6,6 @@ import { revalidatePath } from "next/cache";
 function parsearFecha(fechaStr) {
   const str = String(fechaStr).trim();
 
-  // Extraer los números del string y reconstruir la fecha manualmente
-  // Cubre casos como "202610-02-20T00:00" o "+202610-02-20T00:00:00.000Z"
   const match = str.match(/(\d{4})\D*(\d{2})\D*(\d{2})\D*(\d{2})\D*(\d{2})/);
 
   if (!match) {
@@ -16,9 +14,9 @@ function parsearFecha(fechaStr) {
 
   const [, year, month, day, hours, minutes] = match.map(Number);
 
-  return new Date(year, month - 1, day, hours, minutes);
+  // Date.UTC evita que el servidor aplique su propia zona horaria
+  return new Date(Date.UTC(year, month - 1, day, hours, minutes));
 }
-
 export async function guardarTurno(datos) {
   try {
     const fecha = parsearFecha(datos.fecha);

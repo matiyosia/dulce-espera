@@ -4,12 +4,20 @@ import React from "react";
 import { Calendar, User, FileText, Trash2, Loader2 } from "lucide-react";
 
 export default function ListaTurnos({ turnos, cargando, onEliminar }) {
-  // Función para inyectar el evento con dos alertas nativas en iOS
   const descargarCalendarioICS = (turno) => {
     const fechaTurno = new Date(turno.fecha);
-    const formatearFechaICS = (date) =>
-      date.toISOString().replace(/-|:|\.\d\d\d/g, "");
-    const fechaFin = new Date(fechaTurno.getTime() + 60 * 60 * 1000); // Duración de 1 hora
+    const fechaFin = new Date(fechaTurno.getTime() + 60 * 60 * 1000);
+
+    const formatearFechaICS = (date) => {
+      const str = date
+        .toLocaleString("sv-SE", {
+          timeZone: "America/Argentina/Buenos_Aires",
+          hour12: false,
+        })
+        .replace(/[-: ]/g, "")
+        .slice(0, 15);
+      return str;
+    };
 
     const contenidoICS = [
       "BEGIN:VCALENDAR",
@@ -18,25 +26,20 @@ export default function ListaTurnos({ turnos, cargando, onEliminar }) {
       "BEGIN:VEVENT",
       `UID:turno-${turno.id}@dulceespera.app`,
       `DTSTAMP:${formatearFechaICS(new Date())}`,
-      `DTSTART:${formatearFechaICS(fechaTurno)}`,
-      `DTEND:${formatearFechaICS(fechaFin)}`,
+      `DTSTART;TZID=America/Argentina/Buenos_Aires:${formatearFechaICS(fechaTurno)}`,
+      `DTEND;TZID=America/Argentina/Buenos_Aires:${formatearFechaICS(fechaFin)}`,
       `SUMMARY:${turno.titulo}`,
       `DESCRIPTION:Doctor/Clínica: ${turno.doctor || "No especificado"}\\nNotas: ${turno.notas || "Sin notas"}`,
-
-      // ALERTA 1: 1 Día Antes (1440 minutos antes)
       "BEGIN:VALARM",
       "TRIGGER:-PT1440M",
       "ACTION:DISPLAY",
       "DESCRIPTION:Recordatorio: Mañana tenés turno médico",
       "END:VALARM",
-
-      // ALERTA 2: En el momento del turno (0 minutos)
       "BEGIN:VALARM",
       "TRIGGER:-PT0M",
       "ACTION:DISPLAY",
       "DESCRIPTION:¡Es hora de tu turno médico!",
       "END:VALARM",
-
       "END:VEVENT",
       "END:VCALENDAR",
     ].join("\r\n");
@@ -87,7 +90,8 @@ export default function ListaTurnos({ turnos, cargando, onEliminar }) {
             <div className="text-[10px] text-neutral-400 mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
               <span className="flex items-center text-sky-400">
                 <Calendar size={10} className="mr-0.5" />
-                {new Date(turno.fecha).toLocaleString([], {
+                {new Date(turno.fecha).toLocaleString("es-AR", {
+                  timeZone: "America/Argentina/Buenos_Aires",
                   day: "2-digit",
                   month: "2-digit",
                   hour: "2-digit",
