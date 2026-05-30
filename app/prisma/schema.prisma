@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model TurnoMedico {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  titulo    String
+  fecha     DateTime
+  doctor    String?
+  notes     String?  @map("notas") // Mapeo por si quedó algún registro con el nombre viejo
+
+  @@map("turnos_medicos")
+}
