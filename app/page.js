@@ -49,37 +49,22 @@ export default function Home() {
   if (!acceso) return <PantallaLogin onAcceso={() => setAcceso(true)} />;
 
   // Manejador del formulario adaptado para altas y modificaciones
-  const handleFormulario = async (e, valoresFormulario) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-
-    const formData = new FormData();
-    formData.append("titulo", valoresFormulario.titulo);
-    formData.append("fecha", valoresFormulario.fecha);
-    formData.append("doctor", valoresFormulario.doctor);
-    formData.append("notas", valoresFormulario.notas);
-
+  const handleFormulario = async (valoresFormulario) => {
     startTransition(async () => {
       let res;
-
       if (turnoEnEdicion) {
-        res = await actualizarTurno(turnoEnEdicion.id, formData);
+        res = await actualizarTurno(turnoEnEdicion.id, valoresFormulario);
       } else {
-        res = await guardarTurno(formData);
+        res = await guardarTurno(valoresFormulario);
       }
 
       if (res?.success) {
-        // --- AQUÍ ESTÁ EL CAMBIO ---
-        // Al guardar exitosamente, programamos la alerta automáticamente
-        programarAlerta(valoresFormulario);
-        // ---------------------------
-
-        form.reset();
         formRef.current?.reset();
+        programarAlerta(valoresFormulario);
         setTurnoEnEdicion(null);
         await cargarDatos();
       } else {
-        alert(res?.error || "Error al procesar el turno");
+        alert(res?.error);
       }
     });
   };

@@ -3,16 +3,42 @@
 import { prisma } from "../../lib/prisma";
 import { revalidatePath } from "next/cache";
 
-// Función auxiliar para obtener valores de forma flexible (a prueba de prefijos de Next.js)
-function obtenerValor(formData, nombre) {
-  // Primero intenta obtenerlo por el nombre exacto,
-  // si no, busca con el posible prefijo que Next.js añade internamente
-  return (
-    formData.get(nombre) ||
-    formData.get(`_1_${nombre}`) ||
-    formData.get(`$ACTION_ID_0_${nombre}`)
-  );
+export async function guardarTurno(datos) {
+  // datos es un objeto simple { titulo, fecha, doctor, notas }
+  try {
+    await prisma.turnoMedico.create({
+      data: {
+        titulo: datos.titulo,
+        fecha: new Date(datos.fecha),
+        doctor: datos.doctor || null,
+        notes: datos.notas || null,
+      },
+    });
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 }
+
+export async function actualizarTurno(id, datos) {
+  try {
+    await prisma.turnoMedico.update({
+      where: { id: Number(id) },
+      data: {
+        titulo: datos.titulo,
+        fecha: new Date(datos.fecha),
+        doctor: datos.doctor || null,
+        notes: datos.notas || null,
+      },
+    });
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+// ... mantener obtenerTurnos y eliminarTurno igual
 
 // 1. OBTENER TODOS LOS TURNOS
 export async function obtenerTurnos() {
@@ -32,35 +58,6 @@ export async function obtenerTurnos() {
   }
 }
 
-// 2. GUARDAR UN NUEVO TURNO
-export async function guardarTurno(formData) {
-  const titulo = obtenerValor(formData, "titulo");
-  const fecha = obtenerValor(formData, "fecha");
-  const doctor = obtenerValor(formData, "doctor");
-  const notas = obtenerValor(formData, "notas");
-
-  if (!titulo || !fecha) {
-    return { success: false, error: "El título y la fecha son obligatorios." };
-  }
-
-  try {
-    await prisma.turnoMedico.create({
-      data: {
-        titulo,
-        fecha: new Date(fecha),
-        doctor: doctor || null,
-        notes: notas || null,
-      },
-    });
-
-    revalidatePath("/");
-    return { success: true };
-  } catch (error) {
-    console.error("❌ Error en guardarTurno:", error);
-    return { success: false, error: "No se pudo guardar en la base de datos." };
-  }
-}
-
 // 3. ELIMINAR UN TURNO
 export async function eliminarTurno(id) {
   try {
@@ -73,35 +70,5 @@ export async function eliminarTurno(id) {
   } catch (error) {
     console.error("❌ Error en eliminarTurno:", error);
     return { success: false, error: "No se pudo eliminar el turno." };
-  }
-}
-
-// 4. ACTUALIZAR UN TURNO EXISTENTE
-export async function actualizarTurno(id, formData) {
-  const titulo = obtenerValor(formData, "titulo");
-  const fecha = obtenerValor(formData, "fecha");
-  const doctor = obtenerValor(formData, "doctor");
-  const notas = obtenerValor(formData, "notas");
-
-  if (!titulo || !fecha) {
-    return { success: false, error: "El título y la fecha son obligatorios." };
-  }
-
-  try {
-    await prisma.turnoMedico.update({
-      where: { id: Number(id) },
-      data: {
-        titulo,
-        fecha: new Date(fecha),
-        doctor: doctor || null,
-        notes: notas || null,
-      },
-    });
-
-    revalidatePath("/");
-    return { success: true };
-  } catch (error) {
-    console.error("❌ Error en actualizarTurno:", error);
-    return { success: false, error: "No se pudo actualizar el turno." };
   }
 }

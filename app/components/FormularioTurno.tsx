@@ -19,12 +19,10 @@ export default forwardRef(function FormularioTurno(
     notas: "",
   });
 
-  // Exponemos la función reset al componente padre
   useImperativeHandle(ref, () => ({
     reset: () => setValores({ titulo: "", fecha: "", doctor: "", notas: "" }),
   }));
 
-  // Si cambia el turno en edición, llenamos los campos
   useEffect(() => {
     if (turnoEnEdicion) {
       const fechaLocal = new Date(turnoEnEdicion.fecha)
@@ -41,89 +39,60 @@ export default forwardRef(function FormularioTurno(
     }
   }, [turnoEnEdicion]);
 
-  const handleChange = (e) => {
-    setValores({ ...valores, [e.target.name]: e.target.value });
-  };
-
   return (
-    <form onSubmit={(e) => onSubmit(e, valores)} className="space-y-2 pt-1">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit(valores); // Pasamos solo el objeto, sin el evento 'e'
+      }}
+      className="space-y-2 pt-1"
+    >
       <input
         type="text"
         name="titulo"
         required
         value={valores.titulo}
-        onChange={handleChange}
+        onChange={(e) => setValores({ ...valores, titulo: e.target.value })}
         placeholder="Ej: Ecografía de Control"
-        className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs focus:outline-none focus:border-rose-500 text-neutral-100 transition-colors"
+        className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs focus:outline-none focus:border-rose-500 text-neutral-100"
       />
-
       <div className="grid grid-cols-2 gap-2">
         <input
           type="datetime-local"
           name="fecha"
           required
           value={valores.fecha}
-          onChange={handleChange}
-          className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs focus:outline-none focus:border-rose-500 text-neutral-100 transition-colors"
+          onChange={(e) => setValores({ ...valores, fecha: e.target.value })}
+          className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs focus:outline-none focus:border-rose-500 text-neutral-100"
         />
         <input
           type="text"
           name="doctor"
           value={valores.doctor}
-          onChange={handleChange}
-          placeholder="Doctor o Clínica"
-          className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs focus:outline-none focus:border-rose-500 text-neutral-100 transition-colors"
+          onChange={(e) => setValores({ ...valores, doctor: e.target.value })}
+          placeholder="Doctor"
+          className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs focus:outline-none focus:border-rose-500 text-neutral-100"
         />
       </div>
-
       <input
         type="text"
         name="notas"
         value={valores.notas}
-        onChange={handleChange}
-        placeholder="Notas opcionales (ej: ir en ayunas)"
-        className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs focus:outline-none focus:border-rose-500 text-neutral-100 transition-colors"
+        onChange={(e) => setValores({ ...valores, notas: e.target.value })}
+        placeholder="Notas opcionales"
+        className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-2.5 text-xs focus:outline-none focus:border-rose-500 text-neutral-100"
       />
-
-      <div className="flex gap-2">
-        {turnoEnEdicion && (
-          <button
-            type="button"
-            onClick={onCancelarEdicion}
-            className="bg-neutral-950 border border-neutral-800 hover:bg-neutral-800 text-neutral-400 p-2.5 rounded-xl text-xs flex items-center justify-center transition-all active:scale-[0.99]"
-            title="Cancelar edición"
-          >
-            <X size={14} />
-          </button>
-        )}
-
-        <button
-          type="submit"
-          disabled={isPending}
-          className={`flex-1 font-semibold rounded-xl py-2.5 text-xs flex items-center justify-center space-x-1.5 transition-all active:scale-[0.99] ${
-            turnoEnEdicion
-              ? "bg-amber-600 hover:bg-amber-700 text-white"
-              : "bg-rose-600 hover:bg-rose-700 text-white"
-          }`}
-        >
-          {isPending ? (
-            <Loader2 size={14} className="animate-spin" />
-          ) : turnoEnEdicion ? (
-            <Check size={14} />
-          ) : (
-            <Plus size={14} />
-          )}
-          <span>
-            {isPending
-              ? turnoEnEdicion
-                ? "Actualizando..."
-                : "Agendando..."
-              : turnoEnEdicion
-                ? "Guardar Cambios"
-                : "Agendar Turno"}
-          </span>
-        </button>
-      </div>
+      <button
+        type="submit"
+        disabled={isPending}
+        className="w-full bg-rose-600 py-2.5 rounded-xl text-white font-semibold text-xs"
+      >
+        {isPending
+          ? "Procesando..."
+          : turnoEnEdicion
+            ? "Guardar Cambios"
+            : "Agendar Turno"}
+      </button>
     </form>
   );
 });
