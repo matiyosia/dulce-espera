@@ -6,7 +6,6 @@ import React, {
   useImperativeHandle,
   forwardRef,
 } from "react";
-import { Plus, Loader2, Check, X } from "lucide-react";
 
 export default forwardRef(function FormularioTurno(
   { onSubmit, isPending, turnoEnEdicion, onCancelarEdicion },
@@ -39,14 +38,29 @@ export default forwardRef(function FormularioTurno(
     }
   }, [turnoEnEdicion]);
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Normalizar fecha: tomar solo los primeros 16 chars "YYYY-MM-DDTHH:MM"
+    const fechaStr = String(valores.fecha).trim().slice(0, 16);
+    const [datePart, timePart] = fechaStr.split("T");
+    const [year, month, day] = (datePart || "").split("-").map(Number);
+    const [hours, minutes] = (timePart || "00:00").split(":").map(Number);
+
+    const fechaValida = !isNaN(year) && !isNaN(month) && !isNaN(day);
+    if (!fechaValida) {
+      alert("La fecha no es válida, por favor seleccionala de nuevo.");
+      return;
+    }
+
+    onSubmit({
+      ...valores,
+      fecha: `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}T${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`,
+    });
+  };
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit(valores); // Pasamos solo el objeto, sin el evento 'e'
-      }}
-      className="space-y-2 pt-1"
-    >
+    <form onSubmit={handleSubmit} className="space-y-2 pt-1">
       <input
         type="text"
         name="titulo"

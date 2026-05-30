@@ -3,23 +3,26 @@
 import { prisma } from "../../lib/prisma";
 import { revalidatePath } from "next/cache";
 
+function parsearFecha(fechaStr) {
+  const str = String(fechaStr).trim().slice(0, 16);
+  const [datePart, timePart] = str.split("T");
+  const [year, month, day] = (datePart || "").split("-").map(Number);
+  const [hours, minutes] = (timePart || "00:00").split(":").map(Number);
+
+  if (isNaN(year) || isNaN(month) || isNaN(day)) {
+    throw new Error(`Fecha inválida recibida: "${fechaStr}"`);
+  }
+
+  return new Date(year, month - 1, day, hours, minutes);
+}
+
 export async function guardarTurno(datos) {
   try {
-    // Forzar string y limpiar antes de parsear
-    const fechaStr = String(datos.fecha).trim();
-    const fecha = new Date(fechaStr);
-
-    if (isNaN(fecha.getTime())) {
-      return {
-        success: false,
-        error: `Fecha inválida recibida: "${fechaStr}"`,
-      };
-    }
-
+    const fecha = parsearFecha(datos.fecha);
     await prisma.turnoMedico.create({
       data: {
         titulo: datos.titulo,
-        fecha: fecha,
+        fecha,
         doctor: datos.doctor || null,
         notes: datos.notas || null,
       },
@@ -33,11 +36,12 @@ export async function guardarTurno(datos) {
 
 export async function actualizarTurno(id, datos) {
   try {
+    const fecha = parsearFecha(datos.fecha);
     await prisma.turnoMedico.update({
       where: { id: Number(id) },
       data: {
         titulo: datos.titulo,
-        fecha: new Date(datos.fecha),
+        fecha,
         doctor: datos.doctor || null,
         notes: datos.notas || null,
       },
@@ -48,9 +52,7 @@ export async function actualizarTurno(id, datos) {
     return { success: false, error: error.message };
   }
 }
-// ... mantener obtenerTurnos y eliminarTurno igual
 
-// 1. OBTENER TODOS LOS TURNOS
 export async function obtenerTurnos() {
   try {
     const turnos = await prisma.turnoMedico.findMany({
@@ -68,13 +70,11 @@ export async function obtenerTurnos() {
   }
 }
 
-// 3. ELIMINAR UN TURNO
 export async function eliminarTurno(id) {
   try {
     await prisma.turnoMedico.delete({
       where: { id: Number(id) },
     });
-
     revalidatePath("/");
     return { success: true };
   } catch (error) {
