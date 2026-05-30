@@ -5,13 +5,15 @@ import { revalidatePath } from "next/cache";
 
 export async function guardarTurno(datos) {
   try {
-    if (!datos.fecha) {
-      return { success: false, error: "La fecha es requerida" };
-    }
+    // Forzar string y limpiar antes de parsear
+    const fechaStr = String(datos.fecha).trim();
+    const fecha = new Date(fechaStr);
 
-    const fecha = new Date(datos.fecha);
     if (isNaN(fecha.getTime())) {
-      return { success: false, error: "La fecha no es válida" };
+      return {
+        success: false,
+        error: `Fecha inválida recibida: "${fechaStr}"`,
+      };
     }
 
     await prisma.turnoMedico.create({
